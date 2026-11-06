@@ -1,0 +1,119 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Customers | E-Commerce Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+<div class="sidebar">
+    <h2>E-Commerce</h2>
+
+    <h4>MAIN MENU</h4>
+    <a href="/">Dashboard</a>
+    <a href="/products">Products</a>
+    <a href="/customers" class="active">Customers</a>
+    <a href="#">Categories</a>
+    <a href="#">Addresses</a>
+
+    <h4>SALES MANAGEMENT</h4>
+    <a href="#">Carts & Cart Items</a>
+    <a href="/orders">Orders & Order Items</a>
+    <a href="/payments">Payments</a>
+    <a href="#">Refunds</a>
+
+    <h4>INVENTORY & LOGISTICS</h4>
+    <a href="/inventory">Inventory</a>
+    <a href="#">Warehouses</a>
+    <a href="#">Shipments</a>
+    <a href="#">Delivery Status</a>
+</div>
+
+<div class="main-content">
+
+    <h1>Customer Management</h1>
+    <a href="/customers/add"
+    style="display: inline-block; padding: 10px 18px; background: #2563eb; color: white; border-radius: 6px; text-decoration: none; margin-top: 10px;">
+        + Add Customer
+    </a>
+    <p>View and manage registered customers.</p>
+
+    
+        <form method="GET" action="/customers"
+            style="display: flex; justify-content: flex-end; margin: 20px 0; gap: 10px;">
+
+            <input
+                type="text"
+                name="search"
+                placeholder="Search by ID, name, email or phone..."
+                value="{{ search }}"
+                style="width: 350px; padding: 12px; border: 1px solid #ddd; border-radius: 6px;"
+            >
+
+            <button type="submit"
+                    style="padding: 12px 20px; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer;">
+                Search
+            </button>
+
+            <a href="/customers"
+            style="padding: 12px 20px; background: #e5e7eb; color: #333; border-radius: 6px; text-decoration: none;">
+                Reset
+            </a>
+
+        </form>
+
+        <div class="table-container">
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Customer ID</th>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Date of Birth</th>
+                    <th>Registered On</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for customer in customers %}
+                <tr>
+                    <td>{{ customer[0] }}</td>
+                    <td>{{ customer[1] }}</td>
+                    <td>{{ customer[2] or '-' }}</td>
+                    <td>{{ customer[3] }}</td>
+                    <td>{{ customer[4] or '-' }}</td>
+                    <td>{{ customer[5].strftime('%d-%m-%Y') if customer[5] else '-' }}</td>
+                    <td>{{ customer[6].strftime('%d-%m-%Y') if customer[6] else '-' }}</td>
+                    <td>{{ customer[7] or '-' }}</td>
+                    <td>
+                        <a href="{{ url_for('customer_details', customer_id=customer[0]) }}">
+                            View
+                        </a>
+
+                        |
+
+                        <a href="{{ url_for('edit_customer', customer_id=customer[0]) }}">
+                            Edit
+                        </a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="9">No customers found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+</body>
+</html>

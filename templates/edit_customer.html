@@ -1,0 +1,91 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Customer | E-Commerce Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+<div class="sidebar">
+    <h2>E-Commerce</h2>
+
+    <h4>MAIN MENU</h4>
+    <a href="/">Dashboard</a>
+    <a href="/products">Products</a>
+    <a href="/customers" class="active">Customers</a>
+    <a href="#">Categories</a>
+    <a href="#">Addresses</a>
+
+    <h4>SALES MANAGEMENT</h4>
+    <a href="#">Carts & Cart Items</a>
+    <a href="/orders">Orders & Order Items</a>
+    <a href="/payments">Payments</a>
+    <a href="#">Refunds</a>
+
+    <h4>INVENTORY & LOGISTICS</h4>
+    <a href="/inventory">Inventory</a>
+    <a href="#">Warehouses</a>
+    <a href="#">Shipments</a>
+    <a href="#">Delivery Status</a>
+</div>
+
+<div class="main-content">
+
+    <h1>Edit Customer</h1>
+    <p>Update customer information below.</p>
+
+    <div class="customer-form-container">
+
+        <form method="POST" class="customer-form">
+
+            <label>Customer ID</label>
+            <input type="text" value="{{ customer[0] }}" disabled>
+
+            <label>First Name *</label>
+            <input type="text" name="first_name"
+                   value="{{ customer[1] }}" required>
+
+            <label>Last Name</label>
+            <input type="text" name="last_name"
+                   value="{{ customer[2] or '' }}">
+
+            <label>Email *</label>
+            <input type="email" name="email"
+                   value="{{ customer[3] }}" required>
+
+            <label>Phone</label>
+            <input type="tel" name="phone"
+                   value="{{ customer[4] or '' }}">
+
+            <label>Date of Birth</label>
+            <input type="date" name="date_of_birth"
+                   value="{{ customer[5].strftime('%Y-%m-%d') if customer[5] else '' }}">
+
+            <label>Status</label>
+            <select name="status">
+                <option value="ACTIVE"
+                    {% if customer[6] == 'ACTIVE' %}selected{% endif %}>
+                    ACTIVE
+                </option>
+
+                <option value="BLOCKED"
+                    {% if customer[6] == 'BLOCKED' %}selected{% endif %}>
+                    BLOCKED
+                </option>
+            </select>
+
+            <br><br>
+
+            <button type="submit">Update Customer</button>
+            <a href="/customers">Cancel</a>
+
+        </form>
+
+    </div>
+
+</div>
+
+</body>
+</html>

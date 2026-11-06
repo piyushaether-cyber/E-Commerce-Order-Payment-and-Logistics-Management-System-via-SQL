@@ -1,0 +1,77 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Category | E-Commerce</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+<div class="sidebar">
+    <h2>E-Commerce</h2>
+
+    <h4>MAIN MENU</h4>
+    <a href="/">Dashboard</a>
+    <a href="/products">Products</a>
+    <a href="/customers">Customers</a>
+    <a href="/categories" class="active">Categories</a>
+    <a href="/addresses">Addresses</a>
+
+    <h4>SALES MANAGEMENT</h4>
+    <a href="#">Carts & Cart Items</a>
+    <a href="/orders">Orders & Order Items</a>
+    <a href="/payments">Payments</a>
+    <a href="#">Refunds</a>
+
+    <h4>INVENTORY & LOGISTICS</h4>
+    <a href="/inventory">Inventory</a>
+    <a href="#">Warehouses</a>
+    <a href="#">Shipments</a>
+    <a href="#">Delivery Status</a>
+</div>
+
+<div class="main-content">
+
+    <h1>Edit Category</h1>
+    <p>Update the category details below.</p>
+
+    <div class="customer-form-container">
+
+        <form method="POST" class="customer-form">
+
+            <label>Category ID</label>
+            <input type="text" value="{{ category[0] }}" disabled>
+
+            <label>Category Name *</label>
+            <input type="text" name="category_name"
+                   value="{{ category[1] }}" required>
+
+            <label>Parent Category</label>
+            <select name="parent_category_id">
+                <option value="">None (Main Category)</option>
+
+                {% for parent in parent_categories %}
+                <option value="{{ parent[0] }}"
+                    {% if category[2] == parent[0] %}selected{% endif %}>
+                    {{ parent[1] }}
+                </option>
+                {% endfor %}
+            </select>
+
+            <label>Description</label>
+            <textarea name="description" rows="4">{{ category[3] or '' }}</textarea>
+
+            <br><br>
+
+            <button type="submit">Update Category</button>
+            <a href="/categories">Cancel</a>
+
+        </form>
+
+    </div>
+
+</div>
+
+</body>
+</html>

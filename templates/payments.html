@@ -1,0 +1,180 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payments - ShopAdmin</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<div class="dashboard-container">
+
+    <aside class="sidebar">
+        <h2>ShopAdmin</h2>
+
+        <p>MAIN MENU</p>
+        <a href="/">Dashboard</a>
+        <a href="{{ url_for('products') }}">Products</a>
+        <a href="#">Categories</a>
+        <a href="#">Customers</a>
+        <a href="#">Addresses</a>
+
+        <p>SALES MANAGEMENT</p>
+        <a href="#">Carts & Cart Items</a>
+        <a href="{{ url_for('orders') }}">Orders & Order Items</a>
+        <a href="{{ url_for('payments') }}" class="active">Payments</a>
+        <a href="#">Refunds</a>
+
+        <p>INVENTORY & LOGISTICS</p>
+        <a href="{{ url_for('inventory') }}">Inventory</a>
+        <a href="#">Warehouses</a>
+        <a href="#">Shipments</a>
+        <a href="#">Delivery Status</a>
+    </aside>
+
+    <main class="main-content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <div style="padding: 12px 18px; margin-bottom: 20px;
+                            background: #dcfce7; color: #166534; border-radius: 8px;">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endwith %}
+
+        <h1>Payment Management</h1>
+        
+        <!-- Record Payment Form -->
+        <div class="content-card">
+
+            <h2>Record New Payment</h2>
+
+            <form action="{{ url_for('record_payment') }}" method="POST"
+                style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center; margin-top: 20px;">
+
+                <select name="order_id" required
+                        style="padding: 12px; border: 1px solid #ddd; border-radius: 8px; min-width: 230px;">
+
+                    <option value="">Select Unpaid Order</option>
+
+                    {% for order in unpaid_orders %}
+                        <option value="{{ order[0] }}">
+                            Order #{{ order[0] }} - ₹{{ "{:,.2f}".format(order[1]) }}
+                        </option>
+                    {% endfor %}
+
+                </select>
+
+                <select name="payment_method" required
+                        style="padding: 12px; border: 1px solid #ddd; border-radius: 8px;">
+
+                    <option value="">Payment Method</option>
+                    <option value="UPI">UPI</option>
+                    <option value="CARD">CARD</option>
+                    <option value="NETBANKING">NETBANKING</option>
+                    <option value="COD">COD</option>
+                    <option value="WALLET">WALLET</option>
+
+                </select>
+
+                <input type="text"
+                    name="transaction_ref"
+                    maxlength="50"
+                    placeholder="Transaction Reference (optional)"
+                    style="padding: 12px; border: 1px solid #ddd; border-radius: 8px;">
+
+                <select name="payment_status" required
+                        style="padding: 12px; border: 1px solid #ddd; border-radius: 8px;">
+
+                    <option value="PENDING">PENDING</option>
+                    <option value="SUCCESS">SUCCESS</option>
+                    <option value="FAILED">FAILED</option>
+                    <option value="REFUNDED">REFUNDED</option>
+
+                </select>
+
+                <button type="submit"
+                        style="padding: 12px 22px; background: #2563eb; color: white; border: none; border-radius: 8px; cursor: pointer;">
+
+                    Record Payment
+
+                </button>
+
+            </form>
+
+        </div>
+
+        <div class="content-card">
+
+            <h2>All Payments</h2>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Payment ID</th>
+                        <th>Order ID</th>
+                        <th>Amount</th>
+                        <th>Payment Method</th>
+                        <th>Transaction Reference</th>
+                        <th>Status</th>
+                        <th>Payment Date</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for payment in payment_records %}
+                    <tr>
+                        <td>{{ payment[0] }}</td>
+                        <td>{{ payment[1] }}</td>
+                        <td>₹{{ "{:,.2f}".format(payment[2]) }}</td>
+                        <td>{{ payment[3] }}</td>
+                        <td>{{ payment[4] or '-' }}</td>
+                        
+                        <td>
+                            {% if payment[5] == 'PENDING' %}
+
+                                <form action="{{ url_for('update_payment_status', payment_id=payment[0]) }}"
+                                    method="POST"
+                                    style="display: flex; gap: 8px; align-items: center;">
+
+                                    <select name="payment_status" required
+                                            style="padding: 8px; border: 1px solid #ddd; border-radius: 6px;">
+
+                                        <option value="">Select Status</option>
+                                        <option value="SUCCESS">SUCCESS</option>
+                                        <option value="FAILED">FAILED</option>
+
+                                    </select>
+
+                                    <button type="submit"
+                                            style="padding: 8px 12px; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer;">
+                                        Update
+                                    </button>
+
+                                </form>
+
+                            {% else %}
+                                {{ payment[5] or 'PENDING' }}
+                            {% endif %}
+                        </td>
+
+                        <td>{{ payment[6] or '-' }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7">No payment records found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+        </div>
+
+    </main>
+
+</div>
+
+</body>
+</html>

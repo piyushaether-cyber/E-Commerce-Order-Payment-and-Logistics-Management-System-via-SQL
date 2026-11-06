@@ -1,0 +1,116 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Address | E-Commerce Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+<div class="sidebar">
+    <h2>E-Commerce</h2>
+
+    <h4>MAIN MENU</h4>
+    <a href="/">Dashboard</a>
+    <a href="/products">Products</a>
+    <a href="/customers">Customers</a>
+    <a href="#">Categories</a>
+    <a href="/addresses" class="active">Addresses</a>
+
+    <h4>SALES MANAGEMENT</h4>
+    <a href="#">Carts & Cart Items</a>
+    <a href="/orders">Orders & Order Items</a>
+    <a href="/payments">Payments</a>
+    <a href="#">Refunds</a>
+
+    <h4>INVENTORY & LOGISTICS</h4>
+    <a href="/inventory">Inventory</a>
+    <a href="#">Warehouses</a>
+    <a href="#">Shipments</a>
+    <a href="#">Delivery Status</a>
+</div>
+
+<div class="main-content">
+
+    <h1>Edit Address</h1>
+    <p>Update the customer's address details.</p>
+
+    <div class="customer-form-container">
+
+        <form method="POST" class="customer-form">
+
+            <label>Address ID</label>
+            <input type="text" value="{{ address[0] }}" disabled>
+
+            <label>Customer ID</label>
+            <input type="text" value="{{ address[1] }}" disabled>
+
+            <label>Address Line 1 *</label>
+            <input type="text" name="address_line1"
+                   value="{{ address[2] }}" required>
+
+            <label>Address Line 2</label>
+            <input type="text" name="address_line2"
+                   value="{{ address[3] or '' }}">
+
+            <label>City *</label>
+            <input type="text" name="city"
+                   value="{{ address[4] }}" required>
+
+            <label>State *</label>
+            <input type="text" name="state"
+                   value="{{ address[5] }}" required>
+
+            <label>Pincode *</label>
+            <input type="text" name="pincode"
+                   value="{{ address[6] }}" required>
+
+            <label>Country</label>
+            <input type="text" name="country"
+                   value="{{ address[7] or '' }}">
+
+            <label>Address Type</label>
+            <select name="address_type">
+                <option value="HOME"
+                    {% if address[8] == 'HOME' %}selected{% endif %}>
+                    HOME
+                </option>
+
+                <option value="WORK"
+                    {% if address[8] == 'WORK' %}selected{% endif %}>
+                    WORK
+                </option>
+
+                <option value="OTHER"
+                    {% if address[8] == 'OTHER' %}selected{% endif %}>
+                    OTHER
+                </option>
+            </select>
+
+            <label>Default Address</label>
+            <select name="is_default">
+                <option value="Y"
+                    {% if address[9] == 'Y' %}selected{% endif %}>
+                    Yes
+                </option>
+
+                <option value="N"
+                    {% if address[9] == 'N' %}selected{% endif %}>
+                    No
+                </option>
+            </select>
+
+            <br><br>
+
+            <button type="submit">Update Address</button>
+            <a href="/addresses">Cancel</a>
+
+        </form>
+
+    </div>
+
+</div>
+
+</body>
+</html>

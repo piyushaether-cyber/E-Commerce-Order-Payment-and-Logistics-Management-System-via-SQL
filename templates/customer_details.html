@@ -1,0 +1,142 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Customer Details | E-Commerce Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+<div class="sidebar">
+    <h2>E-Commerce</h2>
+
+    <h4>MAIN MENU</h4>
+    <a href="/">Dashboard</a>
+    <a href="/products">Products</a>
+    <a href="/customers" class="active">Customers</a>
+    <a href="#">Categories</a>
+    <a href="#">Addresses</a>
+
+    <h4>SALES MANAGEMENT</h4>
+    <a href="#">Carts & Cart Items</a>
+    <a href="/orders">Orders & Order Items</a>
+    <a href="/payments">Payments</a>
+    <a href="#">Refunds</a>
+
+    <h4>INVENTORY & LOGISTICS</h4>
+    <a href="/inventory">Inventory</a>
+    <a href="#">Warehouses</a>
+    <a href="#">Shipments</a>
+    <a href="#">Delivery Status</a>
+</div>
+
+<div class="main-content">
+
+    <h1>Customer Details</h1>
+    <p>Complete customer information and order history.</p>
+
+    <div class="customer-form-container">
+
+        <h2>Personal Information</h2>
+
+        <p><strong>Customer ID:</strong> {{ customer[0] }}</p>
+        <p><strong>Name:</strong> {{ customer[1] }} {{ customer[2] or '' }}</p>
+        <p><strong>Email:</strong> {{ customer[3] }}</p>
+        <p><strong>Phone:</strong> {{ customer[4] or '-' }}</p>
+        <p><strong>Date of Birth:</strong>
+            {{ customer[5].strftime('%d-%m-%Y') if customer[5] else '-' }}
+        </p>
+        <p><strong>Registered On:</strong>
+            {{ customer[6].strftime('%d-%m-%Y') if customer[6] else '-' }}
+        </p>
+        <p><strong>Status:</strong> {{ customer[7] }}</p>
+
+    </div>
+
+    <div class="customer-form-container">
+
+        <h2>Order Summary</h2>
+
+        <p><strong>Total Orders:</strong> {{ order_stats[0] }}</p>
+        <p><strong>Total Order Value:</strong> ₹{{ "%.2f"|format(order_stats[1]) }}</p>
+
+    </div>
+
+    <div class="customer-form-container">
+
+        <h2>Customer Addresses</h2>
+
+        {% for address in addresses %}
+            <div style="border-bottom: 1px solid #ddd; padding: 12px 0;">
+
+                <p><strong>Address ID:</strong> {{ address[0] }}</p>
+                <p>{{ address[1] }}</p>
+
+                {% if address[2] %}
+                    <p>{{ address[2] }}</p>
+                {% endif %}
+
+                <p>
+                    {{ address[3] }}, {{ address[4] }} - {{ address[5] }}
+                </p>
+
+                <p>{{ address[6] }}</p>
+                <p><strong>Address Type:</strong> {{ address[7] or '-' }}</p>
+
+                {% if address[8] == 'Y' %}
+                    <p><strong>Default Address</strong></p>
+                {% endif %}
+
+            </div>
+        {% else %}
+            <p>No addresses registered.</p>
+        {% endfor %}
+
+    </div>
+
+    <div class="customer-form-container">
+
+        <h2>Recent Orders</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Order Date</th>
+                    <th>Total Amount</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for order in recent_orders %}
+                <tr>
+                    <td>{{ order[0] }}</td>
+                    <td>{{ order[1].strftime('%d-%m-%Y') if order[1] else '-' }}</td>
+                    <td>₹{{ "%.2f"|format(order[2]) }}</td>
+                    <td>{{ order[3] }}</td>
+                    <td>
+                        <a href="{{ url_for('order_details', order_id=order[0]) }}">
+                            View
+                        </a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5">No orders found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+    </div>
+
+    <br>
+    <a href="/customers">← Back to Customers</a>
+
+</div>
+
+</body>
+</html>
