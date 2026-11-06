@@ -1,0 +1,123 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>E-Commerce Admin</title>
+
+    <link rel="stylesheet"
+    href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+    
+<!-- Sidebar -->
+<div class="sidebar">
+
+    <h2>ShopAdmin</h2>
+
+    <p class="menu-title">MAIN MENU</p>
+
+    <a class="active" href="/">Dashboard</a>
+    <a href="/products">Products</a>
+    <a href="/categories">Categories</a>
+    <a href="/customers">Customers</a>
+    <a href="/addresses">Addresses</a>
+
+    <p class="menu-title">SALES MANAGEMENT</p>
+
+    <a href="/carts">Carts & Cart Items</a>
+    <a href="/orders">Orders & Order Items</a>
+    <a href="/payments">Payments</a>
+    <a href="/refunds">Refunds</a>
+
+    <p class="menu-title">INVENTORY & LOGISTICS</p>
+
+    <a href="/inventory">Inventory</a>
+    <a href="/warehouses">Warehouses</a>
+    <a href="/shipments">Shipments</a>
+    <a href="/delivery-status">Delivery Status</a>
+
+</div>
+
+
+
+
+    <!-- Main Content -->
+    <div class="main">
+
+        <div class="topbar">
+            <h2>Dashboard</h2>
+            <span>Administrator</span>
+        </div>
+
+        <h1>Welcome Back!</h1>
+
+        <p class="subtitle">
+            Here's what's happening with your store today.
+        </p>
+
+
+        <!-- Statistics Cards -->
+        <div class="cards">
+
+            <div class="card">
+                <p>Total Revenue</p>
+                <h2>₹{{ "{:,.2f}".format(total_revenue) }}</h2>
+                <span>Store earnings</span>
+            </div>
+
+            <div class="card">
+                <p>Total Orders</p>
+                <h2>{{ total_orders }}</h2>
+                <span>Orders received</span>
+            </div>
+
+            <div class="card">
+                <p>Total Customers</p>
+                <h2>{{ total_customers }}</h2>
+                <span>Registered users</span>
+            </div>
+
+            <div class="card">
+                <p>Total Products</p>
+                <h2>{{ total_products }}</h2>
+                <span>Available products</span>
+            </div>
+
+        </div>
+
+
+        <!-- Recent Orders -->
+        <div class="orders">
+
+            <h2>Recent Orders</h2>
+
+            <table>
+
+                <tr>
+                    <th>Order ID</th>
+                    <th>Customer</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                </tr>
+
+                {% for order in recent_orders %}
+
+                <tr>
+                    <td>#{{ order[0] }}</td>
+                    <td>{{ order[1] }}</td>
+                    <td>₹{{ "{:,.2f}".format(order[2]) }}</td>
+                    <td>{{ order[3] }}</td>
+                </tr>
+
+                {% endfor %}
+
+            </table>
+
+        </div>
+
+    </div>
+
+</body>
+</html>

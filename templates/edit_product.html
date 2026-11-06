@@ -1,0 +1,206 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Product - ShopAdmin</title>
+
+    <link rel="stylesheet"
+    href="{{ url_for('static', filename='css/style.css') }}">
+
+    <style>
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: #172033;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 15px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .form-group textarea {
+            min-height: 90px;
+            resize: vertical;
+        }
+
+        .form-actions {
+            margin-top: 25px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .submit-btn {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 13px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        .cancel-btn {
+            background: #e5e7eb;
+            color: #172033;
+            padding: 13px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+        }
+
+        @media (max-width: 700px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+
+        <h2>ShopAdmin</h2>
+
+        <p class="menu-title">MAIN MENU</p>
+
+        <a href="/">Dashboard</a>
+        <a class="active" href="/products">Products</a>
+        <a href="/categories">Categories</a>
+        <a href="/customers">Customers</a>
+        <a href="/addresses">Addresses</a>
+
+        <p class="menu-title">SALES MANAGEMENT</p>
+
+        <a href="/carts">Carts & Cart Items</a>
+        <a href="/orders">Orders & Order Items</a>
+        <a href="/payments">Payments</a>
+        <a href="/refunds">Refunds</a>
+
+        <p class="menu-title">INVENTORY & LOGISTICS</p>
+
+        <a href="/inventory">Inventory</a>
+        <a href="/warehouses">Warehouses</a>
+        <a href="/shipments">Shipments</a>
+        <a href="/delivery-status">Delivery Status</a>
+
+    </div>
+
+    <!-- Main Content -->
+    <div class="main">
+
+        <div class="topbar">
+            <h2>Edit Product</h2>
+            <span>Administrator</span>
+        </div>
+
+        <h1>Edit Product #{{ product_id }}</h1>
+
+        <p class="subtitle">
+            Update the product information.
+        </p>
+
+        <div class="orders">
+
+            <h2>Product Information</h2>
+
+            <form method="POST"
+                  action="{{ url_for('edit_product', product_id=product_id) }}">
+
+                <div class="form-grid">
+
+                    <div class="form-group">
+                        <label>Product Name</label>
+                        <input
+                            type="text"
+                            name="product_name"
+                            value="{{ product[0] }}"
+                            maxlength="100"
+                            required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Category</label>
+
+                        <select name="category_id" required>
+
+                            {% for category in categories %}
+                                <option value="{{ category[0] }}"
+                                    {% if category[0] == product[1] %}
+                                        selected
+                                    {% endif %}>
+                                    {{ category[1] }}
+                                </option>
+                            {% endfor %}
+
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Price (₹)</label>
+                        <input
+                            type="number"
+                            name="price"
+                            value="{{ product[3] }}"
+                            min="0.01"
+                            step="0.01"
+                            required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>SKU</label>
+                        <input
+                            type="text"
+                            name="sku"
+                            value="{{ product[4] }}"
+                            maxlength="30"
+                            required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea
+                            name="description"
+                            maxlength="500">{{ product[2] or '' }}</textarea>
+                    </div>
+
+                </div>
+
+                <div class="form-actions">
+
+                    <button type="submit" class="submit-btn">
+                        Save Changes
+                    </button>
+
+                    <a href="/products" class="cancel-btn">
+                        Cancel
+                    </a>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</body>
+</html>

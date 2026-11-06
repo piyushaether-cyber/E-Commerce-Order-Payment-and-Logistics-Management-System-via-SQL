@@ -1,0 +1,88 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orders - ShopAdmin</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<div class="dashboard-container">
+
+    <aside class="sidebar">
+        <h2>ShopAdmin</h2>
+
+        <p>MAIN MENU</p>
+        <a href="/">Dashboard</a>
+        <a href="{{ url_for('products') }}">Products</a>
+        <a href="#">Categories</a>
+        <a href="#">Customers</a>
+        <a href="#">Addresses</a>
+
+        <p>SALES MANAGEMENT</p>
+        <a href="#">Carts & Cart Items</a>
+        <a href="{{ url_for('orders') }}" class="active">Orders & Order Items</a>
+        <a href="#">Payments</a>
+        <a href="#">Refunds</a>
+
+        <p>INVENTORY & LOGISTICS</p>
+        <a href="#">Inventory</a>
+        <a href="#">Warehouses</a>
+        <a href="#">Shipments</a>
+        <a href="#">Delivery Status</a>
+    </aside>
+
+    <main class="main-content">
+
+        <h1>Order Management</h1>
+
+        <div class="content-card">
+            <h2>All Orders</h2>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Customer ID</th>
+                        <th>Customer Name</th>
+                        <th>Order Date</th>
+                        <th>Total Amount</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for order in orders %}
+                    <tr>
+                        <td>{{ order[0] }}</td>
+                        <td>{{ order[1] }}</td>
+                        <td>{{ order[2] }}</td>
+                        <td>{{ order[3] }}</td>
+                        <td>₹{{ "{:,.2f}".format(order[4]) }}</td>
+                        <td>{{ order[5] or 'Pending' }}</td>
+                        <td>
+                            <a href="{{ url_for('order_details', order_id=order[0]) }}">
+                                View
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6">No orders found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+        </div>
+
+    </main>
+
+</div>
+
+</body>
+</html>
+```

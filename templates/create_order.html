@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Order - ShopAdmin</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<div class="dashboard-container">
+
+    <aside class="sidebar">
+        <h2>ShopAdmin</h2>
+
+        <p>MAIN MENU</p>
+        <a href="/">Dashboard</a>
+        <a href="{{ url_for('products') }}">Products</a>
+        <a href="#">Categories</a>
+        <a href="#">Customers</a>
+        <a href="#">Addresses</a>
+
+        <p>SALES MANAGEMENT</p>
+        <a href="#">Carts & Cart Items</a>
+        <a href="{{ url_for('orders') }}" class="active">Orders & Order Items</a>
+        <a href="#">Payments</a>
+        <a href="#">Refunds</a>
+
+        <p>INVENTORY & LOGISTICS</p>
+        <a href="#">Inventory</a>
+        <a href="#">Warehouses</a>
+        <a href="#">Shipments</a>
+        <a href="#">Delivery Status</a>
+    </aside>
+
+    <main class="main-content">
+
+        <h1>Create New Order</h1>
+
+        <div class="content-card">
+
+            <form method="POST">
+
+                <label>Customer</label>
+                <select name="customer_id" required>
+                    <option value="">Select Customer</option>
+
+                    {% for customer in customers %}
+                    <option value="{{ customer[0] }}">
+                        {{ customer[1] }} {{ customer[2] }}
+                    </option>
+                    {% endfor %}
+                </select>
+
+                <br><br>
+
+                <label>Shipping Address</label>
+                <select name="shipping_address_id" id="shipping_address" required>
+                    <option value="">Select Shipping Address</option>
+                </select>
+
+                <br><br>
+
+                <label>Product</label>
+                <select name="product_id" id="product" required>
+                    <option value="">Select Product</option>
+
+                    {% for product in products %}
+                    <option value="{{ product[0] }}" data-price="{{ product[2] }}">
+                        {{ product[1] }} - ₹{{ "{:,.2f}".format(product[2]) }}
+                    </option>
+                    {% endfor %}
+                </select>
+
+                <br><br>
+
+                <label>Quantity</label>
+                <input type="number"
+                       name="quantity"
+                       id="quantity"
+                       min="1"
+                       value="1"
+                       required>
+
+                <br><br>
+
+                <label>Estimated Total</label>
+                <h2 id="total">₹0.00</h2>
+
+                <button type="submit">Create Order</button>
+
+                <a href="{{ url_for('orders') }}">Cancel</a>
+
+            </form>
+
+        </div>
+
+    </main>
+</div>
+
+<script>
+    const customer = document.querySelector('select[name="customer_id"]');
+    const address = document.getElementById("shipping_address");
+
+    const customerAddresses = {
+        "21": [
+            {id: 21, text: "12 MG Road, Delhi, Delhi - 110001"}
+        ],
+        "22": [
+            {id: 22, text: "45 Civil Lines, Meerut, Uttar Pradesh - 250001"}
+        ],
+        "23": [
+            {id: 23, text: "78 Park Street, Kolkata, West Bengal - 700016"}
+        ]
+    };
+
+    customer.addEventListener("change", function () {
+        address.innerHTML = '<option value="">Select Shipping Address</option>';
+
+        const addresses = customerAddresses[customer.value] || [];
+
+        addresses.forEach(function (item) {
+            const option = document.createElement("option");
+            option.value = item.id;
+            option.textContent = item.text;
+            address.appendChild(option);
+        });
+    });
+    const product = document.getElementById("product");
+    const quantity = document.getElementById("quantity");
+    const total = document.getElementById("total");
+
+    function calculateTotal() {
+        const selected = product.options[product.selectedIndex];
+        const price = Number(selected.dataset.price || 0);
+        const qty = Number(quantity.value || 0);
+
+        total.textContent = "₹" + (price * qty).toLocaleString("en-IN", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    }
+
+    product.addEventListener("change", calculateTotal);
+    quantity.addEventListener("input", calculateTotal);
+</script>
+
+</body>
+</html>
