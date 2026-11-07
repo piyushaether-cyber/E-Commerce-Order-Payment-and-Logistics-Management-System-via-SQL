@@ -1718,8 +1718,6 @@ def delete_category(category_id):
         cursor.close()
         connection.close()
 
-@app.route("/warehouses")
-
 @app.route("/warehouses", methods=["GET", "POST"])
 def warehouses():
 
