@@ -1718,6 +1718,833 @@ def delete_category(category_id):
         cursor.close()
         connection.close()
 
+@app.route("/warehouses")
+
+@app.route("/warehouses", methods=["GET", "POST"])
+def warehouses():
+
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    try:
+        if request.method == "POST":
+
+            action = request.form["action"]
+
+            # ADD WAREHOUSE
+            if action == "add":
+
+                cursor.execute("""
+                    INSERT INTO WAREHOUSE
+                    (WAREHOUSE_NAME, CITY, STATE, REGION,
+                     CONTACT_PHONE, IS_ACTIVE)
+                    VALUES
+                    (:name, :city, :state, :region, :phone, 'Y')
+                """, {
+                    "name": request.form["warehouse_name"].strip(),
+                    "city": request.form["city"].strip(),
+                    "state": request.form["state"].strip(),
+                    "region": request.form["region"],
+                    "phone": request.form["contact_phone"].strip()
+                })
+
+                connection.commit()
+                flash("Warehouse added successfully!", "success")
+
+            # EDIT WAREHOUSE
+            elif action == "edit":
+
+                warehouse_id = int(request.form["warehouse_id"])
+
+                cursor.execute("""
+                    UPDATE WAREHOUSE
+                    SET WAREHOUSE_NAME = :name,
+                        CITY = :city,
+                        STATE = :state,
+                        REGION = :region,
+                        CONTACT_PHONE = :phone
+                    WHERE WAREHOUSE_ID = :id
+                """, {
+                    "name": request.form["warehouse_name"].strip(),
+                    "city": request.form["city"].strip(),
+                    "state": request.form["state"].strip(),
+                    "region": request.form["region"],
+                    "phone": request.form["contact_phone"].strip(),
+                    "id": warehouse_id
+                })
+
+                connection.commit()
+                flash("Warehouse updated successfully!", "success")
+
+            # DELETE (DEACTIVATE) WAREHOUSE
+            elif action == "delete":
+
+                warehouse_id = int(request.form["warehouse_id"])
+
+                cursor.execute("""
+                    UPDATE WAREHOUSE
+                    SET IS_ACTIVE = 'N'
+                    WHERE WAREHOUSE_ID = :id
+                """, {"id": warehouse_id})
+
+                connection.commit()
+                flash("Warehouse deactivated successfully!", "success")
+
+            return redirect(url_for("warehouses"))
+
+        # GET ALL WAREHOUSES
+        cursor.execute("""
+            SELECT WAREHOUSE_ID, WAREHOUSE_NAME, CITY,
+                   STATE, REGION, CONTACT_PHONE, IS_ACTIVE
+            FROM WAREHOUSE
+            ORDER BY WAREHOUSE_ID
+        """)
+
+        warehouse_list = cursor.fetchall()
+
+        # GET WAREHOUSE SELECTED FOR EDITING
+        edit_id = request.args.get("edit", type=int)
+        edit_warehouse = None
+
+        if edit_id:
+            cursor.execute("""
+                SELECT WAREHOUSE_ID, WAREHOUSE_NAME, CITY,
+                       STATE, REGION, CONTACT_PHONE
+                FROM WAREHOUSE
+                WHERE WAREHOUSE_ID = :id
+            """, {"id": edit_id})
+
+            edit_warehouse = cursor.fetchone()
+
+        return render_template(
+            "warehouses.html",
+            warehouses=warehouse_list,
+            edit_warehouse=edit_warehouse
+        )
+
+    except Exception:
+        connection.rollback()
+        raise
+
+    finally:
+        cursor.close()
+        connection.close()
+
+@app.route("/shipments", methods=["GET", "POST"])
+def shipments():
+
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    try:
+        if request.method == "POST":
+
+            action = request.form["action"]
+
+            order_id = int(request.form["order_id"])
+            warehouse_id = int(request.form["warehouse_id"])
+            carrier = request.form["carrier_name"].strip()
+            tracking = request.form["tracking_number"].strip() or None
+            shipped_date = request.form["shipped_date"] or None
+            expected_delivery = request.form["expected_delivery"] or None
+            status = request.form["shipment_status"]
+
+            # Check delivery dates
+            if (shipped_date and expected_delivery
+                    and expected_delivery < shipped_date):
+                flash("Expected delivery cannot be before shipped date.", "error")
+                return redirect(url_for("shipments"))
+
+            # ADD SHIPMENT
+            if action == "add":
+
+                cursor.execute("""
+                    INSERT INTO SHIPMENT
+                    (ORDER_ID, WAREHOUSE_ID, CARRIER_NAME,
+                     TRACKING_NUMBER, SHIPPED_DATE,
+                     EXPECTED_DELIVERY, SHIPMENT_STATUS)
+                    VALUES
+                    (:order_id, :warehouse_id, :carrier,
+                     :tracking, TO_DATE(:shipped_date, 'YYYY-MM-DD'),
+                     TO_DATE(:expected_delivery, 'YYYY-MM-DD'), :status)
+                """, {
+                    "order_id": order_id,
+                    "warehouse_id": warehouse_id,
+                    "carrier": carrier,
+                    "tracking": tracking,
+                    "shipped_date": shipped_date,
+                    "expected_delivery": expected_delivery,
+                    "status": status
+                })
+
+                connection.commit()
+                flash("Shipment added successfully!", "success")
+
+            # EDIT SHIPMENT
+            elif action == "edit":
+
+                shipment_id = int(request.form["shipment_id"])
+
+                cursor.execute("""
+                    UPDATE SHIPMENT
+                    SET ORDER_ID = :order_id,
+                        WAREHOUSE_ID = :warehouse_id,
+                        CARRIER_NAME = :carrier,
+                        TRACKING_NUMBER = :tracking,
+                        SHIPPED_DATE = TO_DATE(:shipped_date, 'YYYY-MM-DD'),
+                        EXPECTED_DELIVERY =
+                            TO_DATE(:expected_delivery, 'YYYY-MM-DD'),
+                        SHIPMENT_STATUS = :status
+                    WHERE SHIPMENT_ID = :shipment_id
+                """, {
+                    "order_id": order_id,
+                    "warehouse_id": warehouse_id,
+                    "carrier": carrier,
+                    "tracking": tracking,
+                    "shipped_date": shipped_date,
+                    "expected_delivery": expected_delivery,
+                    "status": status,
+                    "shipment_id": shipment_id
+                })
+
+                connection.commit()
+                flash("Shipment updated successfully!", "success")
+
+            return redirect(url_for("shipments"))
+
+        # DISPLAY SHIPMENTS
+        cursor.execute("""
+            SELECT s.SHIPMENT_ID,
+                   s.ORDER_ID,
+                   w.WAREHOUSE_NAME,
+                   s.CARRIER_NAME,
+                   s.TRACKING_NUMBER,
+                   TO_CHAR(s.SHIPPED_DATE, 'YYYY-MM-DD'),
+                   TO_CHAR(s.EXPECTED_DELIVERY, 'YYYY-MM-DD'),
+                   s.SHIPMENT_STATUS
+            FROM SHIPMENT s
+            JOIN WAREHOUSE w
+                ON s.WAREHOUSE_ID = w.WAREHOUSE_ID
+            ORDER BY s.SHIPMENT_ID DESC
+        """)
+
+        shipment_list = cursor.fetchall()
+
+        # FETCH ORDERS FOR DROPDOWN
+        cursor.execute("""
+            SELECT ORDER_ID
+            FROM ORDERS
+            ORDER BY ORDER_ID DESC
+        """)
+        order_list = cursor.fetchall()
+
+        # FETCH WAREHOUSES FOR DROPDOWN
+        cursor.execute("""
+            SELECT WAREHOUSE_ID, WAREHOUSE_NAME
+            FROM WAREHOUSE
+            WHERE IS_ACTIVE = 'Y'
+            ORDER BY WAREHOUSE_NAME
+        """)
+        warehouse_list = cursor.fetchall()
+
+        # FETCH SHIPMENT FOR EDITING
+        edit_id = request.args.get("edit", type=int)
+        edit_shipment = None
+
+        if edit_id:
+            cursor.execute("""
+                SELECT SHIPMENT_ID, ORDER_ID, WAREHOUSE_ID,
+                       CARRIER_NAME, TRACKING_NUMBER,
+                       TO_CHAR(SHIPPED_DATE, 'YYYY-MM-DD'),
+                       TO_CHAR(EXPECTED_DELIVERY, 'YYYY-MM-DD'),
+                       SHIPMENT_STATUS
+                FROM SHIPMENT
+                WHERE SHIPMENT_ID = :id
+            """, {"id": edit_id})
+
+            edit_shipment = cursor.fetchone()
+
+        return render_template(
+            "shipments.html",
+            shipments=shipment_list,
+            orders=order_list,
+            warehouses=warehouse_list,
+            edit_shipment=edit_shipment
+        )
+
+    except Exception:
+        connection.rollback()
+        raise
+
+    finally:
+        cursor.close()
+        connection.close()
+
+@app.route("/delivery-status", methods=["GET", "POST"])
+def delivery_status():
+
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    try:
+        if request.method == "POST":
+
+            action = request.form["action"]
+
+            # ADD DELIVERY STATUS
+            if action == "add":
+
+                shipment_id = int(request.form["shipment_id"])
+                status = request.form["status"]
+                location = request.form["location"].strip() or None
+                remarks = request.form["remarks"].strip() or None
+
+                cursor.execute("""
+                    INSERT INTO DELIVERY_STATUS
+                    (SHIPMENT_ID, STATUS, LOCATION, STATUS_TIME, REMARKS)
+                    VALUES
+                    (:shipment_id, :status, :location, SYSTIMESTAMP, :remarks)
+                """, {
+                    "shipment_id": shipment_id,
+                    "status": status,
+                    "location": location,
+                    "remarks": remarks
+                })
+
+                connection.commit()
+                flash("Delivery status added successfully!", "success")
+
+            # EDIT DELIVERY STATUS
+            elif action == "edit":
+
+                status_id = int(request.form["status_id"])
+                shipment_id = int(request.form["shipment_id"])
+                status = request.form["status"]
+                location = request.form["location"].strip() or None
+                remarks = request.form["remarks"].strip() or None
+
+                cursor.execute("""
+                    UPDATE DELIVERY_STATUS
+                    SET SHIPMENT_ID = :shipment_id,
+                        STATUS = :status,
+                        LOCATION = :location,
+                        STATUS_TIME = SYSTIMESTAMP,
+                        REMARKS = :remarks
+                    WHERE STATUS_ID = :status_id
+                """, {
+                    "shipment_id": shipment_id,
+                    "status": status,
+                    "location": location,
+                    "remarks": remarks,
+                    "status_id": status_id
+                })
+
+                connection.commit()
+                flash("Delivery status updated successfully!", "success")
+
+            # DELETE DELIVERY STATUS RECORD
+            elif action == "delete":
+
+                status_id = int(request.form["status_id"])
+
+                cursor.execute("""
+                    DELETE FROM DELIVERY_STATUS
+                    WHERE STATUS_ID = :status_id
+                """, {"status_id": status_id})
+
+                connection.commit()
+                flash("Delivery status record deleted!", "success")
+
+            return redirect(url_for("delivery_status"))
+
+        # FETCH DELIVERY HISTORY
+        cursor.execute("""
+            SELECT d.STATUS_ID,
+                   d.SHIPMENT_ID,
+                   s.ORDER_ID,
+                   d.STATUS,
+                   d.LOCATION,
+                   TO_CHAR(d.STATUS_TIME, 'YYYY-MM-DD HH24:MI:SS'),
+                   d.REMARKS
+            FROM DELIVERY_STATUS d
+            JOIN SHIPMENT s
+                ON d.SHIPMENT_ID = s.SHIPMENT_ID
+            ORDER BY d.STATUS_TIME DESC
+        """)
+
+        status_records = cursor.fetchall()
+
+        # FETCH SHIPMENTS FOR DROPDOWN
+        cursor.execute("""
+            SELECT SHIPMENT_ID, ORDER_ID, CARRIER_NAME,
+                   TRACKING_NUMBER
+            FROM SHIPMENT
+            ORDER BY SHIPMENT_ID DESC
+        """)
+
+        shipment_list = cursor.fetchall()
+
+        # FETCH RECORD FOR EDITING
+        edit_id = request.args.get("edit", type=int)
+        edit_record = None
+
+        if edit_id:
+            cursor.execute("""
+                SELECT STATUS_ID, SHIPMENT_ID, STATUS,
+                       LOCATION, REMARKS
+                FROM DELIVERY_STATUS
+                WHERE STATUS_ID = :id
+            """, {"id": edit_id})
+
+            edit_record = cursor.fetchone()
+
+        return render_template(
+            "delivery_status.html",
+            status_records=status_records,
+            shipments=shipment_list,
+            edit_record=edit_record
+        )
+
+    except Exception:
+        connection.rollback()
+        raise
+
+    finally:
+        cursor.close()
+        connection.close()
+
+@app.route("/carts", methods=["GET", "POST"])
+def carts():
+
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    try:
+        if request.method == "POST":
+
+            action = request.form["action"]
+
+            # CREATE CART
+            if action == "add_cart":
+
+                customer_id = int(request.form["customer_id"])
+
+                cursor.execute("""
+                    INSERT INTO CART (CUSTOMER_ID, CREATED_ON, STATUS)
+                    VALUES (:customer_id, SYSDATE, 'ACTIVE')
+                """, {"customer_id": customer_id})
+
+                connection.commit()
+                flash("Cart created successfully!", "success")
+
+            # UPDATE CART STATUS
+            elif action == "update_cart":
+
+                cart_id = int(request.form["cart_id"])
+                status = request.form["status"]
+
+                cursor.execute("""
+                    UPDATE CART
+                    SET STATUS = :status
+                    WHERE CART_ID = :cart_id
+                """, {
+                    "status": status,
+                    "cart_id": cart_id
+                })
+
+                connection.commit()
+                flash("Cart status updated!", "success")
+
+            # ADD PRODUCT TO CART
+            elif action == "add_item":
+
+                cart_id = int(request.form["cart_id"])
+                product_id = int(request.form["product_id"])
+                quantity = int(request.form["quantity"])
+
+                if quantity <= 0:
+                    flash("Quantity must be greater than zero.", "error")
+                    return redirect(url_for("carts"))
+
+                cursor.execute("""
+                    SELECT STATUS
+                    FROM CART
+                    WHERE CART_ID = :cart_id
+                """, {"cart_id": cart_id})
+
+                cart = cursor.fetchone()
+
+                if not cart or cart[0] != "ACTIVE":
+                    flash("Products can only be added to active carts.", "error")
+                    return redirect(url_for("carts"))
+
+                cursor.execute("""
+                    INSERT INTO CART_ITEM
+                    (CART_ID, PRODUCT_ID, QUANTITY, ADDED_ON)
+                    VALUES (:cart_id, :product_id, :quantity, SYSDATE)
+                """, {
+                    "cart_id": cart_id,
+                    "product_id": product_id,
+                    "quantity": quantity
+                })
+
+                connection.commit()
+                flash("Product added to cart!", "success")
+
+            # EDIT CART ITEM QUANTITY
+            elif action == "edit_item":
+
+                item_id = int(request.form["cart_item_id"])
+                quantity = int(request.form["quantity"])
+
+                if quantity <= 0:
+                    flash("Quantity must be greater than zero.", "error")
+                    return redirect(url_for("carts"))
+
+                cursor.execute("""
+                    UPDATE CART_ITEM
+                    SET QUANTITY = :quantity
+                    WHERE CART_ITEM_ID = :item_id
+                    AND CART_ID IN (
+                        SELECT CART_ID
+                        FROM CART
+                        WHERE STATUS = 'ACTIVE'
+                    )
+                """, {
+                    "quantity": quantity,
+                    "item_id": item_id
+                })
+
+                connection.commit()
+                flash("Cart item quantity updated!", "success")
+
+            # DELETE CART ITEM
+            elif action == "delete_item":
+
+                item_id = int(request.form["cart_item_id"])
+
+                cursor.execute("""
+                    DELETE FROM CART_ITEM
+                    WHERE CART_ITEM_ID = :item_id
+                    AND CART_ID IN (
+                        SELECT CART_ID
+                        FROM CART
+                        WHERE STATUS = 'ACTIVE'
+                    )
+                """, {"item_id": item_id})
+
+                connection.commit()
+                flash("Cart item removed!", "success")
+
+            # DELETE CART AND ITS ITEMS
+            elif action == "delete_cart":
+
+                cart_id = int(request.form["cart_id"])
+
+                cursor.execute("""
+                    DELETE FROM CART_ITEM
+                    WHERE CART_ID = :cart_id
+                """, {"cart_id": cart_id})
+
+                cursor.execute("""
+                    DELETE FROM CART
+                    WHERE CART_ID = :cart_id
+                """, {"cart_id": cart_id})
+
+                connection.commit()
+                flash("Cart and its items deleted!", "success")
+
+            return redirect(url_for("carts"))
+
+        # FETCH ALL CARTS
+        cursor.execute("""
+            SELECT CART_ID, CUSTOMER_ID,
+                   TO_CHAR(CREATED_ON, 'YYYY-MM-DD'),
+                   STATUS
+            FROM CART
+            ORDER BY CART_ID DESC
+        """)
+
+        cart_list = cursor.fetchall()
+
+        # FETCH ALL CART ITEMS
+        cursor.execute("""
+            SELECT CART_ITEM_ID, CART_ID, PRODUCT_ID,
+                   QUANTITY,
+                   TO_CHAR(ADDED_ON, 'YYYY-MM-DD')
+            FROM CART_ITEM
+            ORDER BY CART_ITEM_ID DESC
+        """)
+
+        item_list = cursor.fetchall()
+
+        # FETCH CUSTOMERS FOR DROPDOWN
+        cursor.execute("""
+            SELECT CUSTOMER_ID
+            FROM CUSTOMER
+            ORDER BY CUSTOMER_ID
+        """)
+
+        customer_list = cursor.fetchall()
+
+        # FETCH PRODUCTS FOR DROPDOWN
+        cursor.execute("""
+            SELECT PRODUCT_ID
+            FROM PRODUCT
+            ORDER BY PRODUCT_ID
+        """)
+
+        product_list = cursor.fetchall()
+
+        # FETCH ACTIVE CARTS FOR ADD ITEM DROPDOWN
+        cursor.execute("""
+            SELECT CART_ID, CUSTOMER_ID
+            FROM CART
+            WHERE STATUS = 'ACTIVE'
+            ORDER BY CART_ID DESC
+        """)
+
+        active_carts = cursor.fetchall()
+
+        return render_template(
+            "carts.html",
+            carts=cart_list,
+            items=item_list,
+            customers=customer_list,
+            products=product_list,
+            active_carts=active_carts
+        )
+
+    except Exception:
+        connection.rollback()
+        raise
+
+    finally:
+        cursor.close()
+        connection.close()
+        
+# REFUND MANAGEMENT
+@app.route("/refunds")
+def refunds():
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    try:
+        # Get all refund records
+        cursor.execute("""
+            SELECT
+                r.REFUND_ID,
+                r.PAYMENT_ID,
+                r.ORDER_ID,
+                r.REFUND_AMOUNT,
+                r.REASON,
+                r.REFUND_STATUS,
+                r.REFUND_DATE
+            FROM REFUND r
+            ORDER BY r.REFUND_ID DESC
+        """)
+        refund_records = cursor.fetchall()
+
+        # Only successful payments can be selected for refunds
+        cursor.execute("""
+            SELECT PAYMENT_ID, ORDER_ID, AMOUNT
+            FROM PAYMENT
+            WHERE PAYMENT_STATUS = 'SUCCESS'
+            ORDER BY PAYMENT_ID DESC
+        """)
+        successful_payments = cursor.fetchall()
+
+        return render_template(
+            "refunds.html",
+            refund_records=refund_records,
+            successful_payments=successful_payments
+        )
+
+    finally:
+        cursor.close()
+        connection.close()
+
+
+# ADD REFUND
+@app.route("/refunds/add", methods=["POST"])
+def add_refund():
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    try:
+        payment_id = int(request.form["payment_id"])
+        refund_amount = float(request.form["refund_amount"])
+        reason = request.form["reason"].strip()
+
+        if refund_amount <= 0:
+            flash("Refund amount must be greater than zero.", "error")
+            return redirect(url_for("refunds"))
+
+        if not reason:
+            flash("Please enter a refund reason.", "error")
+            return redirect(url_for("refunds"))
+
+        # Get the order and original payment amount
+        cursor.execute("""
+            SELECT ORDER_ID, AMOUNT
+            FROM PAYMENT
+            WHERE PAYMENT_ID = :payment_id
+            AND PAYMENT_STATUS = 'SUCCESS'
+        """, payment_id=payment_id)
+
+        payment = cursor.fetchone()
+
+        if payment is None:
+            flash("Please select a valid successful payment.", "error")
+            return redirect(url_for("refunds"))
+
+        order_id = payment[0]
+        payment_amount = payment[1]
+
+        if refund_amount > payment_amount:
+            flash("Refund cannot exceed the payment amount.", "error")
+            return redirect(url_for("refunds"))
+
+        # Insert refund; Oracle generates REFUND_ID
+        cursor.execute("""
+            INSERT INTO REFUND (
+                PAYMENT_ID,
+                ORDER_ID,
+                REFUND_AMOUNT,
+                REASON,
+                REFUND_STATUS,
+                REFUND_DATE
+            )
+            VALUES (
+                :payment_id,
+                :order_id,
+                :refund_amount,
+                :reason,
+                'REQUESTED',
+                SYSDATE
+            )
+        """,
+        payment_id=payment_id,
+        order_id=order_id,
+        refund_amount=refund_amount,
+        reason=reason)
+
+        connection.commit()
+        flash("Refund added successfully!", "success")
+
+        return redirect(url_for("refunds"))
+
+    except Exception:
+        connection.rollback()
+        raise
+
+    finally:
+        cursor.close()
+        connection.close()
+
+
+# EDIT REFUND
+@app.route("/refunds/update/<int:refund_id>", methods=["POST"])
+def update_refund(refund_id):
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    try:
+        refund_amount = float(request.form["refund_amount"])
+        reason = request.form["reason"].strip()
+        refund_status = request.form["refund_status"]
+
+        allowed_statuses = (
+            "REQUESTED",
+            "APPROVED",
+            "PROCESSED",
+            "REJECTED"
+        )
+
+        if refund_amount <= 0:
+            flash("Refund amount must be greater than zero.", "error")
+            return redirect(url_for("refunds"))
+
+        if not reason:
+            flash("Refund reason cannot be empty.", "error")
+            return redirect(url_for("refunds"))
+
+        if refund_status not in allowed_statuses:
+            flash("Invalid refund status.", "error")
+            return redirect(url_for("refunds"))
+
+        # Check original payment amount
+        cursor.execute("""
+            SELECT p.AMOUNT
+            FROM REFUND r
+            JOIN PAYMENT p ON r.PAYMENT_ID = p.PAYMENT_ID
+            WHERE r.REFUND_ID = :refund_id
+        """, refund_id=refund_id)
+
+        payment = cursor.fetchone()
+
+        if payment is None:
+            flash("Refund not found.", "error")
+            return redirect(url_for("refunds"))
+
+        if refund_amount > payment[0]:
+            flash("Refund cannot exceed the payment amount.", "error")
+            return redirect(url_for("refunds"))
+
+        cursor.execute("""
+            UPDATE REFUND
+            SET REFUND_AMOUNT = :refund_amount,
+                REASON = :reason,
+                REFUND_STATUS = :refund_status
+            WHERE REFUND_ID = :refund_id
+        """,
+        refund_amount=refund_amount,
+        reason=reason,
+        refund_status=refund_status,
+        refund_id=refund_id)
+
+        connection.commit()
+        flash("Refund updated successfully!", "success")
+
+        return redirect(url_for("refunds"))
+
+    except Exception:
+        connection.rollback()
+        raise
+
+    finally:
+        cursor.close()
+        connection.close()
+
+
+# DELETE REFUND
+@app.route("/refunds/delete/<int:refund_id>", methods=["POST"])
+def delete_refund(refund_id):
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    try:
+        cursor.execute("""
+            DELETE FROM REFUND
+            WHERE REFUND_ID = :refund_id
+        """, refund_id=refund_id)
+
+        if cursor.rowcount == 0:
+            flash("Refund not found.", "error")
+        else:
+            connection.commit()
+            flash("Refund deleted successfully!", "success")
+
+        return redirect(url_for("refunds"))
+
+    except Exception:
+        connection.rollback()
+        raise
+
+    finally:
+        cursor.close()
+        connection.close()
+
 
 if __name__ == "__main__":
     app.run(debug=True)

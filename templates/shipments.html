@@ -1,0 +1,230 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Shipments - ShopAdmin</title>
+    <link rel="stylesheet"
+    href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+<div class="sidebar">
+    <h2>ShopAdmin</h2>
+
+    <p class="menu-title">MAIN MENU</p>
+    <a href="/">Dashboard</a>
+    <a href="/products">Products</a>
+    <a href="/categories">Categories</a>
+    <a href="/customers">Customers</a>
+    <a href="/addresses">Addresses</a>
+
+    <p class="menu-title">SALES MANAGEMENT</p>
+    <a href="/carts">Carts & Cart Items</a>
+    <a href="/orders">Orders & Order Items</a>
+    <a href="/payments">Payments</a>
+    <a href="/refunds">Refunds</a>
+
+    <p class="menu-title">INVENTORY & LOGISTICS</p>
+    <a href="/inventory">Inventory</a>
+    <a href="/warehouses">Warehouses</a>
+    <a href="/shipments" class="active">Shipments</a>
+    <a href="/delivery-status">Delivery Status</a>
+</div>
+
+<div class="main">
+
+    <div class="topbar">
+        <h2>Shipments</h2>
+        <span>Administrator</span>
+    </div>
+
+    <h1>Shipment Management</h1>
+    <p class="subtitle">
+        Manage order shipments and delivery information.
+    </p>
+
+    <!-- MESSAGES -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+            <div style="padding:12px; margin-bottom:15px;
+                        background:#dcfce7; color:#166534;
+                        border-radius:8px;">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endwith %}
+
+    <!-- ADD / EDIT FORM -->
+    <div class="orders">
+
+        <h2>
+            {% if edit_shipment %}
+                Edit Shipment
+            {% else %}
+                Add New Shipment
+            {% endif %}
+        </h2>
+
+        <form method="POST">
+
+            <input type="hidden" name="action"
+                   value="{{ 'edit' if edit_shipment else 'add' }}">
+
+            {% if edit_shipment %}
+                <input type="hidden" name="shipment_id"
+                       value="{{ edit_shipment[0] }}">
+            {% endif %}
+
+            <label>Order</label>
+            <select name="order_id" required
+                    style="width:100%; padding:12px; margin:8px 0 18px;
+                           border:1px solid #ddd; border-radius:6px;">
+
+                <option value="">Select Order</option>
+
+                {% for order in orders %}
+                    <option value="{{ order[0] }}"
+                    {% if edit_shipment and edit_shipment[1] == order[0] %}
+                        selected
+                    {% endif %}>
+                        Order #{{ order[0] }}
+                    </option>
+                {% endfor %}
+
+            </select>
+
+            <label>Warehouse</label>
+            <select name="warehouse_id" required
+                    style="width:100%; padding:12px; margin:8px 0 18px;
+                           border:1px solid #ddd; border-radius:6px;">
+
+                <option value="">Select Warehouse</option>
+
+                {% for warehouse in warehouses %}
+                    <option value="{{ warehouse[0] }}"
+                    {% if edit_shipment and edit_shipment[2] == warehouse[0] %}
+                        selected
+                    {% endif %}>
+                        {{ warehouse[1] }}
+                    </option>
+                {% endfor %}
+
+            </select>
+
+            <label>Carrier Name</label>
+            <input type="text" name="carrier_name"
+                   maxlength="50" required
+                   value="{{ edit_shipment[3] if edit_shipment else '' }}"
+                   style="width:100%; padding:12px; margin:8px 0 18px;
+                          border:1px solid #ddd; border-radius:6px;">
+
+            <label>Tracking Number</label>
+            <input type="text" name="tracking_number"
+                   maxlength="40"
+                   value="{{ edit_shipment[4] if edit_shipment else '' }}"
+                   style="width:100%; padding:12px; margin:8px 0 18px;
+                          border:1px solid #ddd; border-radius:6px;">
+
+            <label>Shipped Date</label>
+            <input type="date" name="shipped_date"
+                   value="{{ edit_shipment[5] or '' if edit_shipment else '' }}"
+                   style="width:100%; padding:12px; margin:8px 0 18px;
+                          border:1px solid #ddd; border-radius:6px;">
+
+            <label>Expected Delivery</label>
+            <input type="date" name="expected_delivery"
+                   value="{{ edit_shipment[6] or '' if edit_shipment else '' }}"
+                   style="width:100%; padding:12px; margin:8px 0 18px;
+                          border:1px solid #ddd; border-radius:6px;">
+
+            <label>Shipment Status</label>
+            <select name="shipment_status" required
+                    style="width:100%; padding:12px; margin:8px 0 18px;
+                           border:1px solid #ddd; border-radius:6px;">
+
+                {% for status in ['PREPARING', 'SHIPPED',
+                                  'IN_TRANSIT', 'DELIVERED', 'RETURNED'] %}
+                    <option value="{{ status }}"
+                    {% if edit_shipment and edit_shipment[7] == status %}
+                        selected
+                    {% elif not edit_shipment and status == 'PREPARING' %}
+                        selected
+                    {% endif %}>
+                        {{ status }}
+                    </option>
+                {% endfor %}
+
+            </select>
+
+            <button type="submit"
+                    style="background:#2563eb; color:white;
+                           padding:12px 22px; border:0;
+                           border-radius:6px; cursor:pointer;">
+                {{ 'Update Shipment' if edit_shipment else 'Save Shipment' }}
+            </button>
+
+            {% if edit_shipment %}
+                <a href="{{ url_for('shipments') }}"
+                   style="margin-left:12px;">Cancel</a>
+            {% endif %}
+
+        </form>
+
+    </div>
+
+    <!-- SHIPMENT TABLE -->
+    <div class="orders">
+
+        <h2>All Shipments</h2>
+
+        <table>
+
+            <tr>
+                <th>ID</th>
+                <th>Order</th>
+                <th>Warehouse</th>
+                <th>Carrier</th>
+                <th>Tracking Number</th>
+                <th>Shipped Date</th>
+                <th>Expected Delivery</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+
+            {% for shipment in shipments %}
+
+            <tr>
+                <td>{{ shipment[0] }}</td>
+                <td>#{{ shipment[1] }}</td>
+                <td>{{ shipment[2] }}</td>
+                <td>{{ shipment[3] }}</td>
+                <td>{{ shipment[4] or '-' }}</td>
+                <td>{{ shipment[5] or '-' }}</td>
+                <td>{{ shipment[6] or '-' }}</td>
+                <td>{{ shipment[7] }}</td>
+
+                <td>
+                    <a href="{{ url_for('shipments',
+                                        edit=shipment[0]) }}">
+                        Edit
+                    </a>
+                </td>
+            </tr>
+
+            {% else %}
+
+            <tr>
+                <td colspan="9">No shipments found.</td>
+            </tr>
+
+            {% endfor %}
+
+        </table>
+
+    </div>
+
+</div>
+
+</body>
+</html>

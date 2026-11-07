@@ -1,0 +1,326 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Cart Management - ShopAdmin</title>
+
+    <link rel="stylesheet"
+    href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+<div class="sidebar">
+
+    <h2>ShopAdmin</h2>
+
+    <p class="menu-title">MAIN MENU</p>
+    <a href="/">Dashboard</a>
+    <a href="/products">Products</a>
+    <a href="/categories">Categories</a>
+    <a href="/customers">Customers</a>
+    <a href="/addresses">Addresses</a>
+
+    <p class="menu-title">SALES MANAGEMENT</p>
+    <a href="/carts" class="active">Carts & Cart Items</a>
+    <a href="/orders">Orders & Order Items</a>
+    <a href="/payments">Payments</a>
+    <a href="/refunds">Refunds</a>
+
+    <p class="menu-title">INVENTORY & LOGISTICS</p>
+    <a href="/inventory">Inventory</a>
+    <a href="/warehouses">Warehouses</a>
+    <a href="/shipments">Shipments</a>
+    <a href="/delivery-status">Delivery Status</a>
+
+</div>
+
+<div class="main">
+
+    <div class="topbar">
+        <h2>Cart Management</h2>
+        <span>Administrator</span>
+    </div>
+
+    <h1>Cart Management</h1>
+
+    <p class="subtitle">
+        Manage customer carts and their products.
+    </p>
+
+    <!-- MESSAGES -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+            <div style="padding:12px; margin-bottom:15px;
+                        background:#dcfce7; color:#166534;
+                        border-radius:8px;">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endwith %}
+
+    <!-- CREATE CART -->
+    <div class="orders">
+
+        <h2>Create New Cart</h2>
+
+        <form method="POST">
+
+            <input type="hidden" name="action" value="add_cart">
+
+            <label>Select Customer</label>
+
+            <select name="customer_id" required
+                    style="width:100%; padding:12px; margin:8px 0 18px;
+                           border:1px solid #ddd; border-radius:6px;">
+
+                <option value="">Select Customer</option>
+
+                {% for customer in customers %}
+                    <option value="{{ customer[0] }}">
+                        Customer #{{ customer[0] }}
+                    </option>
+                {% endfor %}
+
+            </select>
+
+            <button type="submit"
+                    style="background:#2563eb; color:white;
+                           padding:12px 22px; border:0;
+                           border-radius:6px; cursor:pointer;">
+                Create Cart
+            </button>
+
+        </form>
+
+    </div>
+
+    <!-- ADD PRODUCT TO CART -->
+    <div class="orders">
+
+        <h2>Add Product to Cart</h2>
+
+        <form method="POST">
+
+            <input type="hidden" name="action" value="add_item">
+
+            <label>Select Cart</label>
+
+            <select name="cart_id" required
+                    style="width:100%; padding:12px; margin:8px 0 18px;
+                           border:1px solid #ddd; border-radius:6px;">
+
+                <option value="">Select Active Cart</option>
+
+                {% for cart in active_carts %}
+                    <option value="{{ cart[0] }}">
+                        Cart #{{ cart[0] }} - Customer #{{ cart[1] }}
+                    </option>
+                {% endfor %}
+
+            </select>
+
+            <label>Select Product</label>
+
+            <select name="product_id" required
+                    style="width:100%; padding:12px; margin:8px 0 18px;
+                           border:1px solid #ddd; border-radius:6px;">
+
+                <option value="">Select Product</option>
+
+                {% for product in products %}
+                    <option value="{{ product[0] }}">
+                        Product #{{ product[0] }}
+                    </option>
+                {% endfor %}
+
+            </select>
+
+            <label>Quantity</label>
+
+            <input type="number" name="quantity"
+                   min="1" value="1" required
+                   style="width:100%; padding:12px; margin:8px 0 18px;
+                          border:1px solid #ddd; border-radius:6px;">
+
+            <button type="submit"
+                    style="background:#2563eb; color:white;
+                           padding:12px 22px; border:0;
+                           border-radius:6px; cursor:pointer;">
+                Add Product
+            </button>
+
+        </form>
+
+    </div>
+
+    <!-- ALL CARTS -->
+    <div class="orders">
+
+        <h2>All Carts</h2>
+
+        <table>
+
+            <tr>
+                <th>Cart ID</th>
+                <th>Customer ID</th>
+                <th>Created On</th>
+                <th>Status</th>
+                <th>Update Status</th>
+                <th>Delete</th>
+            </tr>
+
+            {% for cart in carts %}
+
+            <tr>
+
+                <td>{{ cart[0] }}</td>
+                <td>{{ cart[1] }}</td>
+                <td>{{ cart[2] or '-' }}</td>
+                <td>{{ cart[3] }}</td>
+
+                <td>
+
+                    <form method="POST" style="display:flex; gap:5px;">
+
+                        <input type="hidden" name="action"
+                               value="update_cart">
+
+                        <input type="hidden" name="cart_id"
+                               value="{{ cart[0] }}">
+
+                        <select name="status">
+                            {% for status in ['ACTIVE', 'ORDERED', 'ABANDONED'] %}
+                                <option value="{{ status }}"
+                                {% if cart[3] == status %}selected{% endif %}>
+                                    {{ status }}
+                                </option>
+                            {% endfor %}
+                        </select>
+
+                        <button type="submit">Update</button>
+
+                    </form>
+
+                </td>
+
+                <td>
+                    <form method="POST"
+                          onsubmit="return confirm('Delete this cart and all its items?');">
+
+                        <input type="hidden" name="action"
+                               value="delete_cart">
+
+                        <input type="hidden" name="cart_id"
+                               value="{{ cart[0] }}">
+
+                        <button type="submit"
+                                style="background:#dc2626; color:white;
+                                       border:0; padding:6px 10px;
+                                       border-radius:5px; cursor:pointer;">
+                            Delete
+                        </button>
+
+                    </form>
+                </td>
+
+            </tr>
+
+            {% else %}
+
+            <tr>
+                <td colspan="6">No carts found.</td>
+            </tr>
+
+            {% endfor %}
+
+        </table>
+
+    </div>
+
+    <!-- ALL CART ITEMS -->
+    <div class="orders">
+
+        <h2>All Cart Items</h2>
+
+        <table>
+
+            <tr>
+                <th>Item ID</th>
+                <th>Cart ID</th>
+                <th>Product ID</th>
+                <th>Quantity</th>
+                <th>Added On</th>
+                <th>Actions</th>
+            </tr>
+
+            {% for item in items %}
+
+            <tr>
+
+                <td>{{ item[0] }}</td>
+                <td>{{ item[1] }}</td>
+                <td>{{ item[2] }}</td>
+
+                <td>
+
+                    <form method="POST" style="display:flex; gap:5px;">
+
+                        <input type="hidden" name="action"
+                               value="edit_item">
+
+                        <input type="hidden" name="cart_item_id"
+                               value="{{ item[0] }}">
+
+                        <input type="number" name="quantity"
+                               min="1" value="{{ item[3] }}"
+                               required style="width:75px;">
+
+                        <button type="submit">Update</button>
+
+                    </form>
+
+                </td>
+
+                <td>{{ item[4] or '-' }}</td>
+
+                <td>
+
+                    <form method="POST"
+                          onsubmit="return confirm('Remove this product from the cart?');">
+
+                        <input type="hidden" name="action"
+                               value="delete_item">
+
+                        <input type="hidden" name="cart_item_id"
+                               value="{{ item[0] }}">
+
+                        <button type="submit"
+                                style="background:#dc2626; color:white;
+                                       border:0; padding:6px 10px;
+                                       border-radius:5px; cursor:pointer;">
+                            Remove
+                        </button>
+
+                    </form>
+
+                </td>
+
+            </tr>
+
+            {% else %}
+
+            <tr>
+                <td colspan="6">No cart items found.</td>
+            </tr>
+
+            {% endfor %}
+
+        </table>
+
+    </div>
+
+</div>
+
+</body>
+</html>

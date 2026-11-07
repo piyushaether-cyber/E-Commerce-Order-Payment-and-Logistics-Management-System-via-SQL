@@ -16,24 +16,23 @@
 
         <p>MAIN MENU</p>
         <a href="/">Dashboard</a>
-        <a href="{{ url_for('products') }}">Products</a>
-        <a href="#">Categories</a>
-        <a href="#">Customers</a>
-        <a href="#">Addresses</a>
+        <a href="/products">Products</a>
+        <a href="/categories">Categories</a>
+        <a href="/customers">Customers</a>
+        <a href="/addresses">Addresses</a>
 
         <p>SALES MANAGEMENT</p>
-        <a href="#">Carts & Cart Items</a>
-        <a href="{{ url_for('orders') }}">Orders & Order Items</a>
-        <a href="{{ url_for('payments') }}" class="active">Payments</a>
-        <a href="#">Refunds</a>
+        <a href="/carts">Carts & Cart Items</a>
+        <a href="/orders">Orders & Order Items</a>
+        <a href="/payments" class="active">Payments</a>
+        <a href="/refunds">Refunds</a>
 
         <p>INVENTORY & LOGISTICS</p>
-        <a href="{{ url_for('inventory') }}">Inventory</a>
-        <a href="#">Warehouses</a>
-        <a href="#">Shipments</a>
-        <a href="#">Delivery Status</a>
+        <a href="/inventory">Inventory</a>
+        <a href="/warehouses">Warehouses</a>
+        <a href="/shipments">Shipments</a>
+        <a href="/delivery-status">Delivery Status</a>
     </aside>
-
     <main class="main-content">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% for category, message in messages %}

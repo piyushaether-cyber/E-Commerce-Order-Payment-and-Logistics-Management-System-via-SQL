@@ -1,0 +1,221 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Warehouses - ShopAdmin</title>
+    <link rel="stylesheet"
+    href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+<div class="sidebar">
+    <h2>ShopAdmin</h2>
+
+    <p class="menu-title">MAIN MENU</p>
+    <a href="/">Dashboard</a>
+    <a href="/products">Products</a>
+    <a href="/categories">Categories</a>
+    <a href="/customers">Customers</a>
+    <a href="/addresses">Addresses</a>
+
+    <p class="menu-title">SALES MANAGEMENT</p>
+    <a href="/carts">Carts & Cart Items</a>
+    <a href="/orders">Orders & Order Items</a>
+    <a href="/payments">Payments</a>
+    <a href="/refunds">Refunds</a>
+
+    <p class="menu-title">INVENTORY & LOGISTICS</p>
+    <a href="/inventory">Inventory</a>
+    <a href="/warehouses" class="active">Warehouses</a>
+    <a href="/shipments">Shipments</a>
+    <a href="/delivery-status">Delivery Status</a>
+</div>
+
+<div class="main">
+
+    <div class="topbar">
+        <h2>Warehouses</h2>
+        <span>Administrator</span>
+    </div>
+
+    <h1>Warehouse Management</h1>
+    <p class="subtitle">Manage your warehouse locations.</p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+            <div style="padding:12px; background:#dcfce7;
+                        color:#166534; margin-bottom:15px;
+                        border-radius:8px;">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endwith %}
+
+    <!-- ADD / EDIT FORM -->
+    <div class="orders">
+
+        <h2>
+            {% if edit_warehouse %}
+                Edit Warehouse
+            {% else %}
+                Add New Warehouse
+            {% endif %}
+        </h2>
+
+        <form method="POST">
+
+            <input type="hidden" name="action"
+                   value="{{ 'edit' if edit_warehouse else 'add' }}">
+
+            {% if edit_warehouse %}
+                <input type="hidden" name="warehouse_id"
+                       value="{{ edit_warehouse[0] }}">
+            {% endif %}
+
+            <label>Warehouse Name</label>
+            <input type="text" name="warehouse_name"
+                   value="{{ edit_warehouse[1] if edit_warehouse else '' }}"
+                   maxlength="80" required
+                   style="width:100%; padding:12px; margin:8px 0 18px;
+                          border:1px solid #ddd; border-radius:6px;">
+
+            <label>City</label>
+            <input type="text" name="city"
+                   value="{{ edit_warehouse[2] if edit_warehouse else '' }}"
+                   maxlength="50" required
+                   style="width:100%; padding:12px; margin:8px 0 18px;
+                          border:1px solid #ddd; border-radius:6px;">
+
+            <label>State</label>
+            <input type="text" name="state"
+                   value="{{ edit_warehouse[3] if edit_warehouse else '' }}"
+                   maxlength="50" required
+                   style="width:100%; padding:12px; margin:8px 0 18px;
+                          border:1px solid #ddd; border-radius:6px;">
+
+            <label>Region</label>
+            <select name="region" required
+                    style="width:100%; padding:12px; margin:8px 0 18px;
+                           border:1px solid #ddd; border-radius:6px;">
+
+                <option value="">Select Region</option>
+
+                {% for region in ['NORTH', 'SOUTH', 'EAST', 'WEST', 'CENTRAL'] %}
+                    <option value="{{ region }}"
+                    {% if edit_warehouse and edit_warehouse[4] == region %}
+                        selected
+                    {% endif %}>
+                        {{ region }}
+                    </option>
+                {% endfor %}
+
+            </select>
+
+            <label>Contact Phone</label>
+            <input type="tel" name="contact_phone"
+                   value="{{ edit_warehouse[5] if edit_warehouse else '' }}"
+                   maxlength="15"
+                   style="width:100%; padding:12px; margin:8px 0 18px;
+                          border:1px solid #ddd; border-radius:6px;">
+
+            <button type="submit"
+                    style="background:#2563eb; color:white;
+                           padding:12px 22px; border:0;
+                           border-radius:6px; cursor:pointer;">
+                {{ 'Update Warehouse' if edit_warehouse else 'Save Warehouse' }}
+            </button>
+
+            {% if edit_warehouse %}
+                <a href="{{ url_for('warehouses') }}"
+                   style="margin-left:12px;">Cancel</a>
+            {% endif %}
+
+        </form>
+    </div>
+
+    <!-- WAREHOUSE TABLE -->
+    <div class="orders">
+
+        <h2>All Warehouses</h2>
+
+        <table>
+
+            <tr>
+                <th>ID</th>
+                <th>Warehouse Name</th>
+                <th>City</th>
+                <th>State</th>
+                <th>Region</th>
+                <th>Contact</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+
+            {% for warehouse in warehouses %}
+
+            <tr>
+                <td>{{ warehouse[0] }}</td>
+                <td>{{ warehouse[1] }}</td>
+                <td>{{ warehouse[2] }}</td>
+                <td>{{ warehouse[3] }}</td>
+                <td>{{ warehouse[4] }}</td>
+                <td>{{ warehouse[5] or '-' }}</td>
+
+                <td>
+                    {% if warehouse[6] == 'Y' %}
+                        Active
+                    {% else %}
+                        Inactive
+                    {% endif %}
+                </td>
+
+                <td>
+                    {% if warehouse[6] == 'Y' %}
+
+                        <a href="{{ url_for('warehouses',
+                                            edit=warehouse[0]) }}">
+                            Edit
+                        </a>
+
+                        <form method="POST"
+                              style="display:inline;"
+                              onsubmit="return confirm('Deactivate this warehouse?');">
+
+                            <input type="hidden" name="action"
+                                   value="delete">
+
+                            <input type="hidden" name="warehouse_id"
+                                   value="{{ warehouse[0] }}">
+
+                            <button type="submit"
+                                    style="background:#dc2626; color:white;
+                                           border:0; padding:6px 10px;
+                                           border-radius:5px; cursor:pointer;">
+                                Delete
+                            </button>
+
+                        </form>
+
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+            </tr>
+
+            {% else %}
+
+            <tr>
+                <td colspan="8">No warehouses found.</td>
+            </tr>
+
+            {% endfor %}
+
+        </table>
+
+    </div>
+
+</div>
+
+</body>
+</html>
