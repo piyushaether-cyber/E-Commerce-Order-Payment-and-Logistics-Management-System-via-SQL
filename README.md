@@ -154,4 +154,4 @@ This project demonstrates the practical implementation of Database Management Sy
 
 Developed as an academic semester project.
 
-**GitHub Repository:** [E-Commerce Order, Payment and Logistics Management System](https://github.com/piyushaether-cyber/E-Commerce
+**GitHub Repository:** [E-Commerce Order, Payment and Logistics Management System](https://github.com/piyushaether-cyber/E-Commerce-Order-Payment-and-Logistics-Management-System-via-SQL)
