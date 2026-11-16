@@ -1,10 +1,53 @@
+
 import oracledb
-from werkzeug.security import generate_password_hash
-from flask import Flask, render_template, request, redirect, url_for, flash
+import os
+
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask import Flask, render_template, request, redirect, url_for, flash, session
 from db import get_connection
 
 app = Flask(__name__)
-app.secret_key = "ecommerce_dashboard_secret_2026"
+app.secret_key = os.getenv("SECRET_KEY", "temporary-development-key")
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+
+    if request.method == "POST":
+        username = request.form.get("username")
+        password = request.form.get("password")
+
+        admin_username = os.getenv("ADMIN_USERNAME")
+        admin_password_hash = os.getenv("ADMIN_PASSWORD_HASH")
+
+        if (username == admin_username and
+                admin_password_hash and
+                check_password_hash(admin_password_hash, password)):
+
+            session["logged_in"] = True
+            flash("Login successful!", "success")
+            return redirect(url_for("dashboard"))
+
+        flash("Invalid username or password!", "error")
+
+    return render_template("login.html")
+
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    flash("You have been logged out.", "success")
+    return redirect(url_for("login"))
+
+
+@app.before_request
+def require_login():
+
+    if request.endpoint in ["login", "static"]:
+        return
+
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
 
 @app.route("/")
 def dashboard():

@@ -32,6 +32,7 @@
         <a href="/warehouses">Warehouses</a>
         <a href="/shipments">Shipments</a>
         <a href="/delivery-status">Delivery Status</a>
+        <a href="{{ url_for('logout') }}">Logout</a>
     </aside>
     <main class="main-content">
         {% with messages = get_flashed_messages(with_categories=true) %}

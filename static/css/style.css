@@ -1,4 +1,10 @@
-
+.subtitle {
+    text-align: center;
+    color: #64748b;
+    font-size: 12px;
+    margin-top: -15px;
+    margin-bottom: 25px;
+}
 * {
     margin: 0;
     padding: 0;
