@@ -40,7 +40,21 @@
         <h1>Order Management</h1>
 
         <div class="content-card">
-            <h2>All Orders</h2>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2>All Orders</h2>
+
+                <a href="{{ url_for('create_order') }}"
+                style="background: #2563eb;
+                        color: white;
+                        padding: 10px 16px;
+                        border-radius: 6px;
+                        text-decoration: none;
+                        font-weight: 600;">
+                    + Create Order
+                </a>
+            </div>
+
 
             <table>
                 <thead>
